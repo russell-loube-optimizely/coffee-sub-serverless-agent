@@ -11,8 +11,11 @@ import ImageCard from "./components/ImageCard.js";
 import Type from "./components/Type.js";
 import AddToCartButton from "./components/AddToCartButton.js";
 import DeliveryFrequency from "./components/DeliveryFrequency.js";
+import Grind from "./components/Grind.js";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
+import Cookies from "js-cookie";
 
 function App() {
   const [deliveryValue, setDeliveryValue] = useState("1");
@@ -26,11 +29,11 @@ function App() {
 
   const grind = [
     { name: "Whole Bean", value: "1" },
-    { name: "Drip Grind", value: "2" },
-    { name: "House Grind", value: "3" },
-    { name: "Espresso Grind", value: "4" },
-    { name: "Press Pot Grind", value: "5" },
-    { name: "Pour Over Grind", value: "6" },
+    { name: "French Press", value: "2" },
+    { name: "Chemex", value: "3" },
+    { name: "Automatic Drip", value: "4" },
+    { name: "Pour Over Cone", value: "5" },
+    { name: "Espresso", value: "6" },
   ];
 
   const handleCartClick = () => {
@@ -49,6 +52,8 @@ function App() {
             <Card.Body>
               <Card.Title>Coffee Subscription</Card.Title>
               <Card.Subtitle className="mb-2 text-muted">$18.00</Card.Subtitle>
+              <br />
+              <Grind grind={grind} />
               <br />
               <Type type={type} />
               <br />

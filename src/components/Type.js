@@ -14,9 +14,9 @@ const Type = ({ type }) => {
           <ToggleButton
             variant="light"
             key={idx}
-            id={`radio-${idx}`}
+            id={`type-${idx}`}
             type="radio"
-            name="radio"
+            name="type"
             value={radio.value}
             checked={typeValue === radio.value}
             onChange={(e) => setTypeValue(e.currentTarget.value)}
