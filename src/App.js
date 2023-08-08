@@ -1,10 +1,6 @@
-import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
-import ToggleButton from "react-bootstrap/ToggleButton";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Form from "react-bootstrap/Form";
 
 import FogLightNavbar from "./components/FogLightNavbar.js";
 import ImageCard from "./components/ImageCard.js";
@@ -15,9 +11,16 @@ import Grind from "./components/Grind.js";
 
 import React, { useState, useEffect } from "react";
 
+import agentService from "./services/Agent";
+
+import axios from "axios";
+
 function App() {
   const [deliveryValue, setDeliveryValue] = useState("1");
   const [addedToCart, setAddedToCart] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [variables, setVariables] = useState([]);
+  const [title, setTitle] = useState();
 
   const type = [
     { name: "Roaster's Choice", value: "1" },
@@ -37,68 +40,75 @@ function App() {
   const handleCartClick = () => {
     const updatedAddedToCart = !addedToCart;
     setAddedToCart(updatedAddedToCart);
+    agentService.sendOdpEvent(purchasedPayload);
   };
 
-  const optimizely = require("@optimizely/optimizely-sdk");
-  const optimizelyClient = optimizely.createInstance({
-    sdkKey: "BNFZhjLJcatSku1y6XLAM",
-  });
+  let vuid =
+    localStorage.getItem("optimizely-vuid") !== null
+      ? localStorage.getItem("optimizely-vuid")
+      : localStorage.setItem("optimizely-vuid", crypto.randomUUID());
 
-  const [datafileFetched, setDatafileFetched] = useState(false);
-  const [isClientReady, setIsClientReady] = useState(false);
+  const identifiedPayload = {
+    type: "fullstack",
+    identifiers: { user_id: "test_user_1", vuid },
+    action: "identified",
+  };
 
   useEffect(() => {
-    optimizelyClient.onReady().then(() => {
-      setDatafileFetched(true);
-      if (isClientValid) {
-        setIsClientReady(true);
-      }
-    }, []);
+    agentService.sendOdpEvent(identifiedPayload);
   });
 
-  const isClientValid = () => {
-    return optimizelyClient.getOptimizelyConfig() !== null;
+  const decideAllPayload = {
+    userId: "test-user",
+    userAttributes: {},
+    fetchSegments: true,
+    fetchSegmentsOptions: ["IGNORE_CACHE"],
   };
 
-  const user = optimizelyClient.createUserContext("user123");
-  const decision = user.decide("product_detail_page");
-  const title = decision.variables.title;
-  console.log(decision);
+  useEffect(() => {
+    agentService.decideAll(decideAllPayload).then((decisionVariables) => {
+      console.log("title variable:", decisionVariables.title);
+      setTitle(decisionVariables.title);
+    });
+  }, []);
 
-  if (isClientReady === true) {
-    return (
-      <div className="container">
-        <FogLightNavbar />
-        <br />
-        <Row>
-          <ImageCard />
-          <Col>
-            <Card>
-              <Card.Body>
-                <Card.Title>Coffee Subscription</Card.Title>
-                <Card.Subtitle className="mb-2 text-muted">
-                  $18.00
-                </Card.Subtitle>
-                <br />
-                <Grind grind={grind} />
-                <br />
-                <Type type={type} />
-                <br />
-                <br />
-                <Card.Text>Delivery Frequency</Card.Text>
-                <DeliveryFrequency />
-                <br />
-                <AddToCartButton
-                  addedToCart={addedToCart}
-                  handleClick={handleCartClick}
-                />
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </div>
-    );
-  }
+  const purchasedPayload = {
+    userId: "test-user",
+    type: "fullstack",
+    identifiers: { user_id: "test_user_1", vuid },
+    action: "purchased",
+  };
+
+  return (
+    <div className="container">
+      <FogLightNavbar />
+      <br />
+      <Row>
+        <ImageCard />
+        <Col>
+          <Card>
+            <Card.Body>
+              <Card.Title>{title}</Card.Title>
+              <Card.Subtitle className="mb-2 text-muted">$18.00</Card.Subtitle>
+              <br />
+              <Grind grind={grind} />
+              <br />
+              <Type type={type} />
+              <br />
+              <br />
+              <Card.Text>Delivery Frequency</Card.Text>
+              <DeliveryFrequency />
+              <br />
+              <AddToCartButton
+                addedToCart={addedToCart}
+                handleClick={handleCartClick}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
 }
 
 export default App;
