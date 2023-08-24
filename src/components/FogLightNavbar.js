@@ -5,18 +5,7 @@ import LogInButton from "./LogInButton";
 
 import React, { useState } from "react";
 
-const FogLightNavbar = () => {
-  const [signedIn, setSignedIn] = useState(false);
-
-  const handleSignInClick = () => {
-    console.log("clicked");
-    const updatedSignedIn = !signedIn;
-    console.log("updatedSignedIn: ", updatedSignedIn);
-    setSignedIn(updatedSignedIn);
-    console.log("signedIn state: ", signedIn);
-  };
-  console.log("signed in ", signedIn);
-
+const FogLightNavbar = ({ signedIn, handleSignInClick }) => {
   return (
     <Navbar bg="light" variant="light">
       <Container>

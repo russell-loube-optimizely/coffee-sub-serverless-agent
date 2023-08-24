@@ -18,9 +18,41 @@ import axios from "axios";
 function App() {
   const [deliveryValue, setDeliveryValue] = useState("1");
   const [addedToCart, setAddedToCart] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const [variables, setVariables] = useState([]);
   const [title, setTitle] = useState();
+  const [optimizelyReady, setOptimizelyReady] = useState(false);
+
+  console.log("APP RERENDERED");
+
+  const optimizely = require("@optimizely/optimizely-sdk");
+  const optimizelyClient = optimizely.createInstance({
+    logLevel: "debug",
+    sdkKey: "B3sNMM9RTdM6X7b6kMW4r", // Provide the sdkKey of your desired environment here
+  });
+
+  optimizelyClient.onReady().then(async () => {
+    const user = optimizelyClient.createUserContext("matjaz-user-2", {
+      has_purchased: true,
+    });
+    const odpSegments = await user.fetchQualifiedSegments();
+    console.log(`ODP Segments: ${user.qualifiedSegments}`);
+    setOptimizelyReady(true);
+  });
+
+  const identifiers = new Map([
+    ["fs_user_id", "matjaz-user-2"],
+    ["email", "user123@optimizely.com"],
+  ]);
+
+  const handleSignInClick = () => {
+    if (!optimizelyReady) {
+      return;
+    }
+    optimizelyClient.sendOdpEvent("signedIn", "fullstack", identifiers);
+    const updatedSignedIn = !signedIn;
+    setSignedIn(updatedSignedIn);
+  };
 
   const type = [
     { name: "Roaster's Choice", value: "1" },
@@ -38,9 +70,12 @@ function App() {
   ];
 
   const handleCartClick = () => {
+    if (!optimizelyReady) {
+      return;
+    }
+    optimizelyClient.sendOdpEvent("addedToCart", "fullstack", identifiers);
     const updatedAddedToCart = !addedToCart;
     setAddedToCart(updatedAddedToCart);
-    agentService.sendOdpEvent(purchasedPayload);
   };
 
   let vuid =
@@ -50,13 +85,13 @@ function App() {
 
   const identifiedPayload = {
     type: "fullstack",
-    identifiers: { user_id: "test_user_1", vuid },
+    identifiers: { user_id: "russ080823", vuid },
     action: "identified",
   };
 
-  useEffect(() => {
-    agentService.sendOdpEvent(identifiedPayload);
-  });
+  // useEffect(() => {
+  //   agentService.sendOdpEvent(identifiedPayload);
+  // });
 
   const decideAllPayload = {
     userId: "test-user",
@@ -65,12 +100,12 @@ function App() {
     fetchSegmentsOptions: ["IGNORE_CACHE"],
   };
 
-  useEffect(() => {
-    agentService.decideAll(decideAllPayload).then((decisionVariables) => {
-      console.log("title variable:", decisionVariables.title);
-      setTitle(decisionVariables.title);
-    });
-  }, []);
+  // useEffect(() => {
+  //   agentService.decideAll(decideAllPayload).then((decisionVariables) => {
+  //     console.log("title variable:", decisionVariables.title);
+  //     setTitle(decisionVariables.title);
+  //   });
+  // }, []);
 
   const purchasedPayload = {
     userId: "test-user",
@@ -81,14 +116,17 @@ function App() {
 
   return (
     <div className="container">
-      <FogLightNavbar />
+      <FogLightNavbar
+        signedIn={signedIn}
+        handleSignInClick={handleSignInClick}
+      />
       <br />
       <Row>
         <ImageCard />
         <Col>
           <Card>
             <Card.Body>
-              <Card.Title>{title}</Card.Title>
+              <Card.Title>Coffee Subscription</Card.Title>
               <Card.Subtitle className="mb-2 text-muted">$18.00</Card.Subtitle>
               <br />
               <Grind grind={grind} />
