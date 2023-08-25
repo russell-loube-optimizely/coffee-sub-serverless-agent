@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button";
 
-const AddToCartButton = ({ addedToCart, handleClick }) => {
+const AddToCartButton = ({ text, addedToCart, handleClick }) => {
   if (addedToCart) {
     return (
       <Button variant="success" onClick={handleClick}>
@@ -10,7 +10,7 @@ const AddToCartButton = ({ addedToCart, handleClick }) => {
   }
   return (
     <Button variant="primary" onClick={handleClick}>
-      Add to Cart
+      {text}
     </Button>
   );
 };

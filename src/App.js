@@ -11,37 +11,45 @@ import Grind from "./components/Grind.js";
 
 import React, { useState, useEffect } from "react";
 
-import agentService from "./services/Agent";
-
-import axios from "axios";
-
 function App() {
-  const [deliveryValue, setDeliveryValue] = useState("1");
   const [addedToCart, setAddedToCart] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
-  const [variables, setVariables] = useState([]);
   const [title, setTitle] = useState();
+  const [cta, setCta] = useState();
+  const [grindValue, setGrindValue] = useState("1");
+  const [typeValue, setTypeValue] = useState("1");
+  const [decideCalled, setDecideCalled] = useState(false);
   const [optimizelyReady, setOptimizelyReady] = useState(false);
-
-  console.log("APP RERENDERED");
 
   const optimizely = require("@optimizely/optimizely-sdk");
   const optimizelyClient = optimizely.createInstance({
-    logLevel: "debug",
-    sdkKey: "B3sNMM9RTdM6X7b6kMW4r", // Provide the sdkKey of your desired environment here
+    logLevel: "fatal",
+    sdkKey: "B3sNMM9RTdM6X7b6kMW4r",
   });
 
   optimizelyClient.onReady().then(async () => {
-    const user = optimizelyClient.createUserContext("matjaz-user-2", {
+    const user = optimizelyClient.createUserContext("russ1-0824", {
       has_purchased: true,
     });
+    const decision = user.decide("product_detail_page");
+    const title = decision.variables.title;
+    setTitle(title);
+    const cta = decision.variables.cta;
+    setCta(cta);
+    if (!decideCalled) {
+      const grindValue = decision.variables.grindValue;
+      setGrindValue(grindValue);
+      const typeValue = decision.variables.typeValue;
+      setTypeValue(typeValue);
+    }
+
     const odpSegments = await user.fetchQualifiedSegments();
-    console.log(`ODP Segments: ${user.qualifiedSegments}`);
+    setDecideCalled(true);
     setOptimizelyReady(true);
   });
 
   const identifiers = new Map([
-    ["fs_user_id", "matjaz-user-2"],
+    ["fs_user_id", "russ1-0824"],
     ["email", "user123@optimizely.com"],
   ]);
 
@@ -49,10 +57,30 @@ function App() {
     if (!optimizelyReady) {
       return;
     }
-    optimizelyClient.sendOdpEvent("signedIn", "fullstack", identifiers);
     const updatedSignedIn = !signedIn;
     setSignedIn(updatedSignedIn);
   };
+
+  const handleCartClick = () => {
+    console.log("cart button clicked");
+    const updatedAddedToCart = !addedToCart;
+    setAddedToCart(updatedAddedToCart);
+  };
+
+  const handleDropDownChange = (eventKey) => {
+    console.log("Selected eventKey:", eventKey);
+    setGrindValue(eventKey);
+  };
+
+  const handleToggleButtonChange = (value) => {
+    setTypeValue(value);
+  };
+
+  const frequencies = [
+    { name: "Weekly ($18.00/delivery)", value: "1" },
+    { name: "Bi-Weekly ($18.00/delivery)", value: "2" },
+    { name: "Monthly ($18.00/delivery)", value: "3" },
+  ];
 
   const type = [
     { name: "Roaster's Choice", value: "1" },
@@ -69,51 +97,6 @@ function App() {
     { name: "Espresso", value: "6" },
   ];
 
-  const handleCartClick = () => {
-    if (!optimizelyReady) {
-      return;
-    }
-    optimizelyClient.sendOdpEvent("addedToCart", "fullstack", identifiers);
-    const updatedAddedToCart = !addedToCart;
-    setAddedToCart(updatedAddedToCart);
-  };
-
-  let vuid =
-    localStorage.getItem("optimizely-vuid") !== null
-      ? localStorage.getItem("optimizely-vuid")
-      : localStorage.setItem("optimizely-vuid", crypto.randomUUID());
-
-  const identifiedPayload = {
-    type: "fullstack",
-    identifiers: { user_id: "russ080823", vuid },
-    action: "identified",
-  };
-
-  // useEffect(() => {
-  //   agentService.sendOdpEvent(identifiedPayload);
-  // });
-
-  const decideAllPayload = {
-    userId: "test-user",
-    userAttributes: {},
-    fetchSegments: true,
-    fetchSegmentsOptions: ["IGNORE_CACHE"],
-  };
-
-  // useEffect(() => {
-  //   agentService.decideAll(decideAllPayload).then((decisionVariables) => {
-  //     console.log("title variable:", decisionVariables.title);
-  //     setTitle(decisionVariables.title);
-  //   });
-  // }, []);
-
-  const purchasedPayload = {
-    userId: "test-user",
-    type: "fullstack",
-    identifiers: { user_id: "test_user_1", vuid },
-    action: "purchased",
-  };
-
   return (
     <div className="container">
       <FogLightNavbar
@@ -126,18 +109,27 @@ function App() {
         <Col>
           <Card>
             <Card.Body>
-              <Card.Title>Coffee Subscription</Card.Title>
+              <Card.Title>{title}</Card.Title>
               <Card.Subtitle className="mb-2 text-muted">$18.00</Card.Subtitle>
               <br />
-              <Grind grind={grind} />
+              <Grind
+                grindValue={grindValue}
+                grind={grind}
+                handleDropDownChange={handleDropDownChange}
+              />
               <br />
-              <Type type={type} />
+              <Type
+                type={type}
+                defaultTypeValue={typeValue}
+                handleToggleButtonChange={handleDropDownChange}
+              />
               <br />
               <br />
               <Card.Text>Delivery Frequency</Card.Text>
-              <DeliveryFrequency />
+              <DeliveryFrequency frequencies={frequencies} />
               <br />
               <AddToCartButton
+                text={cta}
                 addedToCart={addedToCart}
                 handleClick={handleCartClick}
               />

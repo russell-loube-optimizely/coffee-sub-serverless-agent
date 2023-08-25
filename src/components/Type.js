@@ -3,8 +3,8 @@ import ButtonGroup from "react-bootstrap/ButtonGroup";
 import ToggleButton from "react-bootstrap/ToggleButton";
 import { useState } from "react";
 
-const Type = ({ type }) => {
-  const [typeValue, setTypeValue] = useState("1");
+const Type = ({ type, defaultTypeValue, handleToggleButtonChange }) => {
+  const [typeValue, setTypeValue] = useState(defaultTypeValue);
 
   return (
     <>
@@ -19,7 +19,10 @@ const Type = ({ type }) => {
             name="type"
             value={radio.value}
             checked={typeValue === radio.value}
-            onChange={(e) => setTypeValue(e.currentTarget.value)}
+            onChange={(e) => {
+              console.log("event:", e.currentTarget);
+              setTypeValue(e.currentTarget.value);
+            }}
           >
             {radio.name}
           </ToggleButton>
