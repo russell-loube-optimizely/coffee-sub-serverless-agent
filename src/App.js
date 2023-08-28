@@ -23,34 +23,40 @@ function App() {
 
   const optimizely = require("@optimizely/optimizely-sdk");
   const optimizelyClient = optimizely.createInstance({
-    logLevel: "fatal",
+    logLevel: "debug",
     sdkKey: "B3sNMM9RTdM6X7b6kMW4r",
   });
 
   optimizelyClient.onReady().then(async () => {
-    const user = optimizelyClient.createUserContext("russ1-0824", {
-      has_purchased: true,
-    });
+    const user = optimizelyClient.createUserContext("russ0828-02");
     const decision = user.decide("product_detail_page");
+    console.log("Opti variables:", decision.variables);
     const title = decision.variables.title;
     setTitle(title);
     const cta = decision.variables.cta;
     setCta(cta);
-    if (!decideCalled) {
-      const grindValue = decision.variables.grindValue;
-      setGrindValue(grindValue);
-      const typeValue = decision.variables.typeValue;
-      setTypeValue(typeValue);
-    }
+    // if (!decideCalled) {
+    //   const grindValue = decision.variables.grindValue;
+    //   setGrindValue(grindValue);
+    //   const typeValue = decision.variables.typeValue;
+    //   setTypeValue(typeValue);
+    // }
 
-    const odpSegments = await user.fetchQualifiedSegments();
+    const odpSegments = await user
+      .fetchQualifiedSegments
+      // "OptimizelySegmentOption.IGNORE_CACHE",
+      // "OptimizelySegmentOption.RESET_CACHE"
+      ();
+    // TODO: Why is the GraphQL call to fetch segments not happening?
+    // How do you ignore cache? Docs are unclear.
+    console.log("Qualified segments", user.qualifiedSegments);
     setDecideCalled(true);
     setOptimizelyReady(true);
   });
 
   const identifiers = new Map([
-    ["fs_user_id", "russ1-0824"],
-    ["email", "user123@optimizely.com"],
+    ["fs_user_id", "russ0828-05"],
+    ["email", "russ0828-05@optimizely.com"],
   ]);
 
   const handleSignInClick = () => {
