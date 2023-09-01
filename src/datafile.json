@@ -8,6 +8,11 @@
   ],
   "audiences": [
     {
+      "name": "Has Purchased At Least Once",
+      "conditions": "[\"and\", [\"or\", [\"or\", {\"match\": \"qualified\", \"name\": \"odp.audiences\", \"type\": \"third_party_dimension\", \"value\": \"has_purchased_at_least_once\"}]]]",
+      "id": "25232370099"
+    },
+    {
       "id": "$opt_dummy_audience",
       "name": "Optimizely-Generated Audience for Backwards Compatibility",
       "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]"
@@ -27,7 +32,21 @@
   "typedAudiences": [
     {
       "name": "Has Purchased At Least Once",
-      "conditions": "[\"and\", [\"or\", [\"or\", {\"match\": \"qualified\", \"name\": \"odp.audiences\", \"type\": \"third_party_dimension\", \"value\": \"mParticle_46934\"}]]]",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "has_purchased_at_least_once"
+            }
+          ]
+        ]
+      ],
       "id": "25232370099"
     }
   ],

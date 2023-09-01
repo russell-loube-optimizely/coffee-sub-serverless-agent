@@ -10,6 +10,8 @@ import DeliveryFrequency from "./components/DeliveryFrequency.js";
 import Grind from "./components/Grind.js";
 
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import datafile from "./datafile.json";
 
 function App() {
   const [addedToCart, setAddedToCart] = useState(false);
@@ -24,17 +26,31 @@ function App() {
   const optimizely = require("@optimizely/optimizely-sdk");
   const optimizelyClient = optimizely.createInstance({
     logLevel: "debug",
-    sdkKey: "B3sNMM9RTdM6X7b6kMW4r",
+    datafile,
+    // sdkKey: "B3sNMM9RTdM6X7b6kMW4r",
   });
 
+  const attributes = {
+    // has_purchased: true,
+  };
+
   optimizelyClient.onReady().then(async () => {
-    const user = optimizelyClient.createUserContext("russ0828-02");
+    const user = optimizelyClient.createUserContext("fs-id-5");
+
+    // Decide API
     const decision = user.decide("product_detail_page");
     console.log("Opti variables:", decision.variables);
     const title = decision.variables.title;
     setTitle(title);
     const cta = decision.variables.cta;
     setCta(cta);
+
+    // Legacy A/B Test (variations only)
+
+    // Legacy Feature Test (variables + variations)
+
+    // Legacy Feature (variables only)
+
     // if (!decideCalled) {
     //   const grindValue = decision.variables.grindValue;
     //   setGrindValue(grindValue);
@@ -42,14 +58,13 @@ function App() {
     //   setTypeValue(typeValue);
     // }
 
-    const odpSegments = await user
-      .fetchQualifiedSegments
-      // "OptimizelySegmentOption.IGNORE_CACHE",
-      // "OptimizelySegmentOption.RESET_CACHE"
-      ();
-    // TODO: Why is the GraphQL call to fetch segments not happening?
-    // How do you ignore cache? Docs are unclear.
+    // ODP METHODS
+    const odpSegments = await user.fetchQualifiedSegments(
+      "OptimizelySegmentOption.IGNORE_CACHE",
+      "OptimizelySegmentOption.RESET_CACHE"
+    );
     console.log("Qualified segments", user.qualifiedSegments);
+
     setDecideCalled(true);
     setOptimizelyReady(true);
   });
