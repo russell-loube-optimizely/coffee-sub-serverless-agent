@@ -9,8 +9,7 @@ import AddToCartButton from "./components/AddToCartButton.js";
 import DeliveryFrequency from "./components/DeliveryFrequency.js";
 import Grind from "./components/Grind.js";
 
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import datafile from "./datafile.json";
 
 function App() {
@@ -25,19 +24,32 @@ function App() {
 
   const optimizely = require("@optimizely/optimizely-sdk");
   const optimizelyClient = optimizely.createInstance({
+    sdkKey: "B3sNMM9RTdM6X7b6kMW4r",
     logLevel: "debug",
-    datafile,
-    // sdkKey: "B3sNMM9RTdM6X7b6kMW4r",
+    datafileOptions: {
+      updateInterval: 1,
+    },
   });
 
-  const attributes = {
-    // has_purchased: true,
-  };
-
   optimizelyClient.onReady().then(async () => {
-    const user = optimizelyClient.createUserContext("fs-id-5");
+    // const attributes = { hasPurchased: true };
 
-    // Decide API
+    const user = optimizelyClient.createUserContext(
+      "vuid_eb018ffef7354004bc3a5bf207a"
+    );
+
+    /* -------------------------------------------------------------------------- */
+    /*                                 ODP Methods                                */
+    /* -------------------------------------------------------------------------- */
+
+    /* ------------------------ Fetch Qualified Segments ------------------------ */
+    const odpSegments = await user
+      .fetchQualifiedSegments
+      // "OptimizelySegmentOption.IGNORE_CACHE",
+      // "OptimizelySegmentOption.RESET_CACHE"
+      ();
+    console.log("Qualified segments", user.qualifiedSegments);
+
     const decision = user.decide("product_detail_page");
     console.log("Opti variables:", decision.variables);
     const title = decision.variables.title;
@@ -45,11 +57,8 @@ function App() {
     const cta = decision.variables.cta;
     setCta(cta);
 
-    // Legacy A/B Test (variations only)
-
-    // Legacy Feature Test (variables + variations)
-
-    // Legacy Feature (variables only)
+    setDecideCalled(true);
+    setOptimizelyReady(true);
 
     // if (!decideCalled) {
     //   const grindValue = decision.variables.grindValue;
@@ -57,16 +66,6 @@ function App() {
     //   const typeValue = decision.variables.typeValue;
     //   setTypeValue(typeValue);
     // }
-
-    // ODP METHODS
-    const odpSegments = await user.fetchQualifiedSegments(
-      "OptimizelySegmentOption.IGNORE_CACHE",
-      "OptimizelySegmentOption.RESET_CACHE"
-    );
-    console.log("Qualified segments", user.qualifiedSegments);
-
-    setDecideCalled(true);
-    setOptimizelyReady(true);
   });
 
   const identifiers = new Map([
@@ -82,7 +81,10 @@ function App() {
     setSignedIn(updatedSignedIn);
   };
 
+  /* ----------------------------- Send ODP Event ----------------------------- */
   const handleCartClick = () => {
+    optimizelyClient.sendOdpEvent("has_purchased");
+
     console.log("cart button clicked");
     const updatedAddedToCart = !addedToCart;
     setAddedToCart(updatedAddedToCart);
