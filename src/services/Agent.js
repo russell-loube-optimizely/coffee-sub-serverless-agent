@@ -1,22 +1,27 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:8080/v1";
+const baseUrl = "https://serverless-agent.russell-loube.workers.dev/v1";
 
-axios.defaults.headers.post["X-Optimizely-SDK-Key"] = "BNFZhjLJcatSku1y6XLAM";
+axios.defaults.headers.post["X-Optimizely-SDK-Key"] = "B3sNMM9RTdM6X7b6kMW4r";
 axios.defaults.headers.post["Accept"] = "text/event-stream";
 axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.defaults.headers.post["X-Optimizely-Enable-FEX"] = "true";
+axios.defaults.headers.post["X-Optimizely-Datafile-KV"] = "true";
+axios.defaults.headers.post["X-Optimizely-Trimmed-Decisions"] = "false";
 
-const decideAll = (userContext) => {
-  const request = axios.post(`${baseUrl}/decide`, userContext);
-  return request.then((response) => response.data[0].variables);
-};
+const agentDecideAll = (visitorId) => {
+  const data = {};
 
-const sendOdpEvent = (parameters) => {
-  const request = axios.post(`${baseUrl}/send-odp-event`, parameters);
+  const config = {
+    headers: {
+      "X-Optimizely-Visitor-Id": visitorId,
+    },
+  };
+
+  const request = axios.post(`${baseUrl}/decide`, data, config);
   return request.then((response) => response.data);
 };
 
 export default {
-  decideAll,
-  sendOdpEvent,
+  agentDecideAll,
 };

@@ -10,7 +10,8 @@ import DeliveryFrequency from "./components/DeliveryFrequency.js";
 import Grind from "./components/Grind.js";
 
 import React, { useState } from "react";
-import datafile from "./datafile.json";
+
+import agent from "./services/Agent";
 
 function App() {
   const [addedToCart, setAddedToCart] = useState(false);
@@ -32,46 +33,19 @@ function App() {
   });
 
   optimizelyClient.onReady().then(async () => {
-    // const attributes = { hasPurchased: true };
+    const attributes = { hasPurchased: true };
 
-    const user = optimizelyClient.createUserContext(
-      "vuid_eb018ffef7354004bc3a5bf207a"
-    );
-
-    /* -------------------------------------------------------------------------- */
-    /*                                 ODP Methods                                */
-    /* -------------------------------------------------------------------------- */
-
-    /* ------------------------ Fetch Qualified Segments ------------------------ */
-    const odpSegments = await user
-      .fetchQualifiedSegments
-      // "OptimizelySegmentOption.IGNORE_CACHE",
-      // "OptimizelySegmentOption.RESET_CACHE"
-      ();
-    console.log("Qualified segments", user.qualifiedSegments);
-
-    const decision = user.decide("product_detail_page");
-    console.log("Opti variables:", decision.variables);
-    const title = decision.variables.title;
-    setTitle(title);
-    const cta = decision.variables.cta;
-    setCta(cta);
+    const decision = agent.agentDecideAll("user123").then((decision) => {
+      console.log(decision);
+      const title = decision.decisions[0].variables.title;
+      setTitle(title);
+      const cta = decision.decisions[0].variables.cta;
+      setCta(cta);
+    });
 
     setDecideCalled(true);
     setOptimizelyReady(true);
-
-    // if (!decideCalled) {
-    //   const grindValue = decision.variables.grindValue;
-    //   setGrindValue(grindValue);
-    //   const typeValue = decision.variables.typeValue;
-    //   setTypeValue(typeValue);
-    // }
   });
-
-  const identifiers = new Map([
-    ["fs_user_id", "russ0828-05"],
-    ["email", "russ0828-05@optimizely.com"],
-  ]);
 
   const handleSignInClick = () => {
     if (!optimizelyReady) {
@@ -81,10 +55,7 @@ function App() {
     setSignedIn(updatedSignedIn);
   };
 
-  /* ----------------------------- Send ODP Event ----------------------------- */
   const handleCartClick = () => {
-    optimizelyClient.sendOdpEvent("has_purchased");
-
     console.log("cart button clicked");
     const updatedAddedToCart = !addedToCart;
     setAddedToCart(updatedAddedToCart);
